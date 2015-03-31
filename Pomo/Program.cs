@@ -72,6 +72,8 @@ namespace Pomo
         {
             _currentState = State.Work;
             _currentInterval = WorkPeriod;
+
+            UpdateIcon();
         }
 
         static void AddTrayIcon()
@@ -100,8 +102,6 @@ namespace Pomo
                 ContextMenu = menu,
             };
 
-            _notifyIcon.Click += Icon_Click;
-
             UpdateIcon();
         }
 
@@ -117,14 +117,21 @@ namespace Pomo
             using (var backgroundBrush = new SolidBrush(backgroundColor))
             using (var borderPen = new Pen(Color.White))
             using (var textBrush = new SolidBrush(Color.White))
+            using (var font = new Font("Segoe UI", 8))
             {
                 using (var bitmap = new Bitmap(16, 16))
                 {
                     using (var graphics = Graphics.FromImage(bitmap))
                     {
-                        graphics.FillRectangle(backgroundBrush, new Rectangle(0, 0, 16, 16));
+                        var rect = new Rectangle(0, 0, 16, 16);
+                        graphics.FillRectangle(backgroundBrush, rect);
                         graphics.DrawRectangle(borderPen, new Rectangle(0, 0, 15, 15));
-                        graphics.DrawString(text, SystemFonts.DefaultFont, textBrush, 0, 1);
+
+                        var stringFormat = new StringFormat();
+                        stringFormat.Alignment = StringAlignment.Center;
+                        stringFormat.LineAlignment = StringAlignment.Center;
+
+                        graphics.DrawString(text, font, textBrush, rect, stringFormat);
 
                         return Icon.FromHandle(bitmap.GetHicon());
                     }
@@ -145,10 +152,6 @@ namespace Pomo
 
         #region Event Handlers
 
-        static void Icon_Click(object sender, EventArgs e)
-        {
-        }
-
         static void Timer_Tick(object sender, EventArgs e)
         {
             _currentInterval = _currentInterval.Add(new TimeSpan(0, 0, -1));
@@ -158,11 +161,15 @@ namespace Pomo
                 switch (_currentState)
                 {
                     case State.Work:
+                        _notifyIcon.ShowBalloonTip(1500, "Pomodoro", "Break time!", ToolTipIcon.Info);
+
                         _currentState = State.Rest;
                         _currentInterval = RestPeriod;
                         break;
 
                     case State.Rest:
+                        _notifyIcon.ShowBalloonTip(1500, "Pomodoro", "Work time!", ToolTipIcon.Info);
+
                         _currentState = State.Work;
                         _currentInterval = WorkPeriod;
                         break;
