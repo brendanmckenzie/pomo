@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Media;
 using System.Windows.Forms;
 
 namespace Pomo
@@ -119,36 +121,37 @@ namespace Pomo
             var ret = _iconCache.ContainsKey(key) ? _iconCache[key] : null;
             if (ret == null)
             {
-                var backgroundColor = _currentState == State.Work ? Color.FromArgb(0xa1, 0x1c, 0x1c) : Color.FromArgb(0x15, 0x4f, 0x12);
+                var backgroundColor = _currentState == State.Work ? Color.FromArgb(0xe7, 0x4c, 0x3c) : Color.FromArgb(0x2e, 0xcc, 0x71);
 
-                using (var backgroundBrush = new SolidBrush(backgroundColor))
-                using (var borderPen = new Pen(Color.White))
-                using (var textBrush = new SolidBrush(Color.White))
-                using (var font = new Font("Segoe UI", 8))
+                using (var bitmap = new Bitmap(16, 16))
                 {
-                    using (var bitmap = new Bitmap(16, 16))
+                    using (var graphics = Graphics.FromImage(bitmap))
                     {
-                        using (var graphics = Graphics.FromImage(bitmap))
+                        var rect = new Rectangle(0, 0, 16, 16);
+
+                        using (var backgroundBrush = new SolidBrush(backgroundColor))
+                        using (var borderPen = new Pen(Color.White))
                         {
-                            var rect = new Rectangle(0, 0, 16, 16);
                             graphics.FillRectangle(backgroundBrush, rect);
                             graphics.DrawRectangle(borderPen, new Rectangle(0, 0, 15, 15));
+                        }
 
-                            using (var stringFormat = new StringFormat())
-                            {
-                                stringFormat.Alignment = StringAlignment.Center;
-                                stringFormat.LineAlignment = StringAlignment.Center;
+                        using (var textBrush = new SolidBrush(Color.White))
+                        using (var font = new Font("Segoe UI", 8))
+                        using (var stringFormat = new StringFormat())
+                        {
+                            stringFormat.Alignment = StringAlignment.Center;
+                            stringFormat.LineAlignment = StringAlignment.Center;
 
-                                var textRect = new Rectangle(rect.X, rect.Y + 1, rect.Width, rect.Height);
+                            var textRect = new Rectangle(rect.X, rect.Y + 1, rect.Width, rect.Height);
 
-                                graphics.DrawString(text, font, textBrush, textRect, stringFormat);
-                            }
-
-                            ret = Icon.FromHandle(bitmap.GetHicon());
-
-                            _iconCache.Add(key, ret);
+                            graphics.DrawString(text, font, textBrush, textRect, stringFormat);
                         }
                     }
+
+                    ret = Icon.FromHandle(bitmap.GetHicon());
+
+                    _iconCache.Add(key, ret);
                 }
             }
 
@@ -166,6 +169,15 @@ namespace Pomo
             _notifyIcon.Icon = GetIcon(text);
         }
 
+        static void PlaySound(Stream data)
+        {
+            using (var player = new SoundPlayer())
+            {
+                player.Stream = data;
+                player.Play();
+            }
+        }
+
         #region Event Handlers
 
         static void Timer_Tick(object sender, EventArgs e)
@@ -179,12 +191,16 @@ namespace Pomo
                     case State.Work:
                         _notifyIcon.ShowBalloonTip(1500, "Pomodoro", "Break time!", ToolTipIcon.Info);
 
+                        PlaySound(Resources.BreakTime);
+
                         _currentState = State.Rest;
                         _currentInterval = RestPeriod;
                         break;
 
                     case State.Rest:
                         _notifyIcon.ShowBalloonTip(1500, "Pomodoro", "Work time!", ToolTipIcon.Info);
+
+                        PlaySound(Resources.WorkTime);
 
                         _currentState = State.Work;
                         _currentInterval = WorkPeriod;
