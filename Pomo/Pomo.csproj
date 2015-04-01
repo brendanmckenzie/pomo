@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pomodoro.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
@@ -75,10 +76,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\break-time.wav" />
+    <None Include="Resources\break-time %281%29.wav" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\work-time.wav" />
+    <None Include="Resources\work-time %281%29.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

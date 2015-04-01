@@ -9,22 +9,13 @@ namespace Pomo
 {
     static class Program
     {
-        enum State
-        {
-            Work,
-            Rest
-        }
-
         #region Private Members
 
-        readonly static TimeSpan WorkPeriod = new TimeSpan(0, 25, 0);
-        readonly static TimeSpan RestPeriod = new TimeSpan(0, 5, 0);
-
         static NotifyIcon _notifyIcon;
-        static Timer _timer;
-        static TimeSpan _currentInterval = WorkPeriod;
-        static State _currentState;
         static IDictionary<string, Icon> _iconCache = new Dictionary<string, Icon>();
+
+        static Pomodoro _pomodoro;
+        static MenuItem _toggleItem;
 
         #endregion
 
@@ -39,8 +30,8 @@ namespace Pomo
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            SetupPomodoro();
             AddTrayIcon();
-            SetupTimer();
 
             Application.Run();
 
@@ -51,33 +42,13 @@ namespace Pomo
 
         #region Private Methods
 
-        static void SetupTimer()
+        static void SetupPomodoro()
         {
-            _timer = new Timer()
-            {
-                Interval = 1000,
-                Enabled = true
-            };
+            _pomodoro = new Pomodoro();
 
-            _timer.Tick += Timer_Tick;
-        }
-
-        static void StartTimer()
-        {
-            _timer.Start();
-        }
-
-        static void PauseTimer()
-        {
-            _timer.Stop();
-        }
-
-        static void ResetTimer()
-        {
-            _currentState = State.Work;
-            _currentInterval = WorkPeriod;
-
-            UpdateIcon();
+            _pomodoro.Tick += Pomodoro_Tick;
+            _pomodoro.BreakTime += Pomodoro_BreakTime;
+            _pomodoro.WorkTime += Pomodoro_WorkTime;
         }
 
         static void AddTrayIcon()
@@ -86,19 +57,37 @@ namespace Pomo
 
             var exitItem = new MenuItem { Text = "E&xit" };
             exitItem.Click += (sender, e) => { Application.Exit(); };
-            var startItem = new MenuItem { Text = "&Start" };
-            startItem.Click += (sender, e) => { StartTimer(); };
-            var stopItem = new MenuItem { Text = "&Pause" };
-            stopItem.Click += (sender, e) => { PauseTimer(); };
+
+            _toggleItem = new MenuItem { Text = "&Start" };
+            _toggleItem.Click += (sender, e) =>
+            {
+                if (_pomodoro.IsRunning)
+                {
+                    _pomodoro.Pause();
+                }
+                else
+                {
+                    _pomodoro.Start();
+                }
+
+                UpdateIcon();
+            };
+
             var resetItem = new MenuItem { Text = "&Reset" };
-            resetItem.Click += (sender, e) => { ResetTimer(); };
+            resetItem.Click += (sender, e) =>
+            {
+                _pomodoro.Reset();
+
+                UpdateIcon();
+            };
 
             menu.MenuItems.Add(resetItem);
             menu.MenuItems.Add(new MenuItem("-"));
-            menu.MenuItems.Add(startItem);
-            menu.MenuItems.Add(stopItem);
+            menu.MenuItems.Add(_toggleItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(exitItem);
+
+            menu.Popup += Menu_Popup;
 
             _notifyIcon = new NotifyIcon
             {
@@ -116,12 +105,16 @@ namespace Pomo
 
         static Icon GetIcon(string text = "0")
         {
-            var key = string.Format("{0}:{1}", text, _currentState);
+            var key = string.Format("{0}:{1}:{2}", text, _pomodoro.CurrentMode, _pomodoro.IsRunning);
 
             var ret = _iconCache.ContainsKey(key) ? _iconCache[key] : null;
             if (ret == null)
             {
-                var backgroundColor = _currentState == State.Work ? Color.FromArgb(0xe7, 0x4c, 0x3c) : Color.FromArgb(0x2e, 0xcc, 0x71);
+                var backgroundColor = _pomodoro.CurrentMode == PomodoroMode.Work ? Color.FromArgb(0xe7, 0x4c, 0x3c) : Color.FromArgb(0x2e, 0xcc, 0x71);
+                if (!_pomodoro.IsRunning)
+                {
+                    backgroundColor = Color.Black;
+                }
 
                 using (var bitmap = new Bitmap(16, 16))
                 {
@@ -160,10 +153,10 @@ namespace Pomo
 
         static void UpdateIcon()
         {
-            var text = _currentInterval.Seconds.ToString();
-            if (_currentInterval.TotalSeconds > 60)
+            var text = _pomodoro.CurrentInterval.Seconds.ToString();
+            if (_pomodoro.CurrentInterval.TotalSeconds > 60)
             {
-                text = _currentInterval.Minutes.ToString();
+                text = _pomodoro.CurrentInterval.Minutes.ToString();
             }
 
             _notifyIcon.Icon = GetIcon(text);
@@ -180,35 +173,28 @@ namespace Pomo
 
         #region Event Handlers
 
-        static void Timer_Tick(object sender, EventArgs e)
+        static void Pomodoro_WorkTime(object sender, EventArgs e)
         {
-            _currentInterval = _currentInterval.Add(new TimeSpan(0, 0, -1));
+            _notifyIcon.ShowBalloonTip(500, "Pomodoro", "Work time!", ToolTipIcon.Info);
 
-            if (_currentInterval.TotalSeconds == 0)
-            {
-                switch (_currentState)
-                {
-                    case State.Work:
-                        _notifyIcon.ShowBalloonTip(1500, "Pomodoro", "Break time!", ToolTipIcon.Info);
+            PlaySound(Resources.WorkTime);
+        }
 
-                        PlaySound(Resources.BreakTime);
+        static void Pomodoro_BreakTime(object sender, EventArgs e)
+        {
+            _notifyIcon.ShowBalloonTip(500, "Pomodoro", "Break time!", ToolTipIcon.Info);
 
-                        _currentState = State.Rest;
-                        _currentInterval = RestPeriod;
-                        break;
+            PlaySound(Resources.BreakTime);
+        }
 
-                    case State.Rest:
-                        _notifyIcon.ShowBalloonTip(1500, "Pomodoro", "Work time!", ToolTipIcon.Info);
-
-                        PlaySound(Resources.WorkTime);
-
-                        _currentState = State.Work;
-                        _currentInterval = WorkPeriod;
-                        break;
-                }
-            }
-
+        static void Pomodoro_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        {
             UpdateIcon();
+        }
+
+        static void Menu_Popup(object sender, EventArgs e)
+        {
+            _toggleItem.Text = _pomodoro.IsRunning ? "&Pause" : "&Start";
         }
 
         #endregion
