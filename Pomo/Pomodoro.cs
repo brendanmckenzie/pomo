@@ -80,6 +80,24 @@ namespace Pomo
             _currentMode = PomodoroMode.Work;
         }
 
+        public void Next()
+        {
+            switch (_currentMode)
+            {
+                case PomodoroMode.Work:
+                    _currentMode = PomodoroMode.Break;
+                    _currentInterval = _breakInterval;
+                    break;
+
+                case PomodoroMode.Break:
+                    _currentMode = PomodoroMode.Work;
+                    _currentInterval = _workInterval;
+                    break;
+            }
+
+            if (Tick != null) { Tick(this, null); }
+        }
+
         #endregion
 
         #region Private Methods

@@ -61,17 +61,11 @@ namespace Pomo
             _toggleItem = new MenuItem { Text = "&Start" };
             _toggleItem.Click += (sender, e) =>
             {
-                if (_pomodoro.IsRunning)
-                {
-                    _pomodoro.Pause();
-                }
-                else
-                {
-                    _pomodoro.Start();
-                }
-
-                UpdateIcon();
+                Toggle();
             };
+
+            var skipItem = new MenuItem { Text = "S&kip" };
+            skipItem.Click += (sender, e) => { _pomodoro.Next(); };
 
             var resetItem = new MenuItem { Text = "&Reset" };
             resetItem.Click += (sender, e) =>
@@ -84,6 +78,7 @@ namespace Pomo
             menu.MenuItems.Add(resetItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(_toggleItem);
+            menu.MenuItems.Add(skipItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(exitItem);
 
@@ -94,6 +89,8 @@ namespace Pomo
                 Visible = true,
                 ContextMenu = menu,
             };
+
+            _notifyIcon.MouseClick += NotifyIcon_Click;
 
             UpdateIcon();
         }
@@ -171,6 +168,20 @@ namespace Pomo
             }
         }
 
+        static void Toggle()
+        {
+            if (_pomodoro.IsRunning)
+            {
+                _pomodoro.Pause();
+            }
+            else
+            {
+                _pomodoro.Start();
+            }
+
+            UpdateIcon();
+        }
+
         #region Event Handlers
 
         static void Pomodoro_WorkTime(object sender, EventArgs e)
@@ -195,6 +206,14 @@ namespace Pomo
         static void Menu_Popup(object sender, EventArgs e)
         {
             _toggleItem.Text = _pomodoro.IsRunning ? "&Pause" : "&Start";
+        }
+
+        static void NotifyIcon_Click(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Toggle();
+            }
         }
 
         #endregion
