@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Pomo
@@ -21,6 +23,7 @@ namespace Pomo
         static Timer _timer;
         static TimeSpan _currentInterval = WorkPeriod;
         static State _currentState;
+        static IDictionary<string, Icon> _iconCache = new Dictionary<string, Icon>();
 
         #endregion
 
@@ -112,31 +115,45 @@ namespace Pomo
 
         static Icon GetIcon(string text = "0")
         {
-            var backgroundColor = _currentState == State.Work ? Color.FromArgb(0xa1, 0x1c, 0x1c) : Color.FromArgb(0x15, 0x4f, 0x12);
+            var key = string.Format("{0}:{1}", text, _currentState);
 
-            using (var backgroundBrush = new SolidBrush(backgroundColor))
-            using (var borderPen = new Pen(Color.White))
-            using (var textBrush = new SolidBrush(Color.White))
-            using (var font = new Font("Segoe UI", 8))
+            var ret = _iconCache.ContainsKey(key) ? _iconCache[key] : null;
+            if (ret == null)
             {
-                using (var bitmap = new Bitmap(16, 16))
+                var backgroundColor = _currentState == State.Work ? Color.FromArgb(0xa1, 0x1c, 0x1c) : Color.FromArgb(0x15, 0x4f, 0x12);
+
+                using (var backgroundBrush = new SolidBrush(backgroundColor))
+                using (var borderPen = new Pen(Color.White))
+                using (var textBrush = new SolidBrush(Color.White))
+                using (var font = new Font("Segoe UI", 8))
                 {
-                    using (var graphics = Graphics.FromImage(bitmap))
+                    using (var bitmap = new Bitmap(16, 16))
                     {
-                        var rect = new Rectangle(0, 0, 16, 16);
-                        graphics.FillRectangle(backgroundBrush, rect);
-                        graphics.DrawRectangle(borderPen, new Rectangle(0, 0, 15, 15));
+                        using (var graphics = Graphics.FromImage(bitmap))
+                        {
+                            var rect = new Rectangle(0, 0, 16, 16);
+                            graphics.FillRectangle(backgroundBrush, rect);
+                            graphics.DrawRectangle(borderPen, new Rectangle(0, 0, 15, 15));
 
-                        var stringFormat = new StringFormat();
-                        stringFormat.Alignment = StringAlignment.Center;
-                        stringFormat.LineAlignment = StringAlignment.Center;
+                            using (var stringFormat = new StringFormat())
+                            {
+                                stringFormat.Alignment = StringAlignment.Center;
+                                stringFormat.LineAlignment = StringAlignment.Center;
 
-                        graphics.DrawString(text, font, textBrush, rect, stringFormat);
+                                var textRect = new Rectangle(rect.X, rect.Y + 2, rect.Width, rect.Height);
 
-                        return Icon.FromHandle(bitmap.GetHicon());
+                                graphics.DrawString(text, font, textBrush, textRect, stringFormat);
+                            }
+
+                            ret = Icon.FromHandle(bitmap.GetHicon());
+
+                            _iconCache.Add(key, ret);
+                        }
                     }
                 }
             }
+
+            return ret;
         }
 
         static void UpdateIcon()
@@ -152,7 +169,11 @@ namespace Pomo
                 _notifyIcon.Icon.Dispose();
             }
 
-            _notifyIcon.Icon = GetIcon(text);
+            try
+            {
+                _notifyIcon.Icon = GetIcon(text);
+            }
+            catch (ExternalException) { }
         }
 
         #region Event Handlers
