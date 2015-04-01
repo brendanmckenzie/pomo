@@ -139,7 +139,7 @@ namespace Pomo
                                 stringFormat.Alignment = StringAlignment.Center;
                                 stringFormat.LineAlignment = StringAlignment.Center;
 
-                                var textRect = new Rectangle(rect.X, rect.Y + 2, rect.Width, rect.Height);
+                                var textRect = new Rectangle(rect.X, rect.Y + 1, rect.Width, rect.Height);
 
                                 graphics.DrawString(text, font, textBrush, textRect, stringFormat);
                             }
