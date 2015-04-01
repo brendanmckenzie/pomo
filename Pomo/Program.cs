@@ -147,6 +147,11 @@ namespace Pomo
                 text = _currentInterval.Minutes.ToString();
             }
 
+            if (_notifyIcon.Icon != null)
+            {
+                _notifyIcon.Icon.Dispose();
+            }
+
             _notifyIcon.Icon = GetIcon(text);
         }
 
