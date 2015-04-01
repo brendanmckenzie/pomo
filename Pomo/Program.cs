@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Pomo
@@ -164,16 +163,7 @@ namespace Pomo
                 text = _currentInterval.Minutes.ToString();
             }
 
-            if (_notifyIcon.Icon != null)
-            {
-                _notifyIcon.Icon.Dispose();
-            }
-
-            try
-            {
-                _notifyIcon.Icon = GetIcon(text);
-            }
-            catch (ExternalException) { }
+            _notifyIcon.Icon = GetIcon(text);
         }
 
         #region Event Handlers
