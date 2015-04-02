@@ -106,27 +106,29 @@ namespace Pomo
         {
             _currentInterval = _currentInterval.Add(new TimeSpan(0, 0, -1));
 
+            if (Tick != null) { Tick(this, e); }
+
             if (_currentInterval.TotalSeconds == 0)
             {
                 switch (_currentMode)
                 {
                     case PomodoroMode.Work:
-                        if (BreakTime != null) { BreakTime(this, new EventArgs()); }
-
                         _currentMode = PomodoroMode.Break;
                         _currentInterval = _breakInterval;
+
+                        if (BreakTime != null) { BreakTime(this, EventArgs.Empty); }
+
                         break;
 
                     case PomodoroMode.Break:
-                        if (WorkTime != null) { WorkTime(this, new EventArgs()); }
-
                         _currentMode = PomodoroMode.Work;
                         _currentInterval = _workInterval;
+
+                        if (WorkTime != null) { WorkTime(this, EventArgs.Empty); }
+
                         break;
                 }
             }
-
-            if (Tick != null) { Tick(this, e); }
         }
 
         #endregion

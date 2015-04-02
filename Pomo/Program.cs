@@ -186,14 +186,14 @@ namespace Pomo
 
         static void Pomodoro_WorkTime(object sender, EventArgs e)
         {
-            _notifyIcon.ShowBalloonTip(500, "Pomodoro", "Work time!", ToolTipIcon.Info);
+            _notifyIcon.ShowBalloonTip(750, "Pomodoro", "Work time!", ToolTipIcon.Info);
 
-            PlaySound(Resources.WorkTime);
+            PlaySound(Resources.BreakTime);
         }
 
         static void Pomodoro_BreakTime(object sender, EventArgs e)
         {
-            _notifyIcon.ShowBalloonTip(500, "Pomodoro", "Break time!", ToolTipIcon.Info);
+            _notifyIcon.ShowBalloonTip(750, "Pomodoro", "Break time!", ToolTipIcon.Info);
 
             PlaySound(Resources.BreakTime);
         }

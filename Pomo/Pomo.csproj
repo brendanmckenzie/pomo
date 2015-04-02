@@ -76,10 +76,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\break-time %281%29.wav" />
+    <None Include="Resources\BreakTime.wav" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\work-time %281%29.wav" />
+    <None Include="Resources\WorkTime.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
