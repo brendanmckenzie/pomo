@@ -157,6 +157,7 @@ namespace Pomo
             }
 
             _notifyIcon.Icon = GetIcon(text);
+            _notifyIcon.Text = string.Format("{0} pomodoro{1} down", _pomodoro.Count, _pomodoro.Count == 1 ? null : "s");
         }
 
         static void PlaySound(Stream data)
@@ -188,12 +189,15 @@ namespace Pomo
         {
             _notifyIcon.ShowBalloonTip(750, "Pomodoro", "Work time!", ToolTipIcon.Info);
 
-            PlaySound(Resources.BreakTime);
+            PlaySound(Resources.WorkTime);
         }
 
         static void Pomodoro_BreakTime(object sender, EventArgs e)
         {
-            _notifyIcon.ShowBalloonTip(750, "Pomodoro", "Break time!", ToolTipIcon.Info);
+            var message = _pomodoro.Count % 4 == 0 ? "Long! Break time." : "Break time!";
+
+            _notifyIcon.ShowBalloonTip(750, "Pomodoro", message, ToolTipIcon.Info);
+
 
             PlaySound(Resources.BreakTime);
         }

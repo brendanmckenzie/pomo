@@ -17,18 +17,17 @@ namespace Pomo
         readonly TimeSpan _workInterval;
         readonly TimeSpan _breakInterval;
 
-        TimeSpan _currentInterval;
-        PomodoroMode _currentMode;
-
         #endregion
 
         #region Public Properties
 
-        public TimeSpan CurrentInterval { get { return _currentInterval; } }
+        public TimeSpan CurrentInterval { get; private set; }
 
-        public PomodoroMode CurrentMode { get { return _currentMode; } }
+        public PomodoroMode CurrentMode { get; private set; }
 
         public bool IsRunning { get { return _timer.Enabled; } }
+
+        public int Count { get; private set; }
 
         #endregion
 
@@ -46,6 +45,8 @@ namespace Pomo
 
         public Pomodoro(bool autoStart = true, int workDuration = 25, int breakDuration = 5)
         {
+            Count = 0;
+
             _workInterval = new TimeSpan(0, workDuration, 0);
             _breakInterval = new TimeSpan(0, breakDuration, 0);
 
@@ -76,22 +77,23 @@ namespace Pomo
 
         public void Reset()
         {
-            _currentInterval = _workInterval;
-            _currentMode = PomodoroMode.Work;
+            CurrentInterval = _workInterval;
+            CurrentMode = PomodoroMode.Work;
+            Count = 0;
         }
 
         public void Next()
         {
-            switch (_currentMode)
+            switch (CurrentMode)
             {
                 case PomodoroMode.Work:
-                    _currentMode = PomodoroMode.Break;
-                    _currentInterval = _breakInterval;
+                    CurrentMode = PomodoroMode.Break;
+                    CurrentInterval = _breakInterval;
                     break;
 
                 case PomodoroMode.Break:
-                    _currentMode = PomodoroMode.Work;
-                    _currentInterval = _workInterval;
+                    CurrentMode = PomodoroMode.Work;
+                    CurrentInterval = _workInterval;
                     break;
             }
 
@@ -104,25 +106,26 @@ namespace Pomo
 
         void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            _currentInterval = _currentInterval.Add(new TimeSpan(0, 0, -1));
+            CurrentInterval = CurrentInterval.Add(new TimeSpan(0, 0, -1));
 
             if (Tick != null) { Tick(this, e); }
 
-            if (_currentInterval.TotalSeconds == 0)
+            if (CurrentInterval.TotalSeconds == 0)
             {
-                switch (_currentMode)
+                switch (CurrentMode)
                 {
                     case PomodoroMode.Work:
-                        _currentMode = PomodoroMode.Break;
-                        _currentInterval = _breakInterval;
+                        CurrentMode = PomodoroMode.Break;
+                        CurrentInterval = _breakInterval;
+                        Count++;
 
                         if (BreakTime != null) { BreakTime(this, EventArgs.Empty); }
 
                         break;
 
                     case PomodoroMode.Break:
-                        _currentMode = PomodoroMode.Work;
-                        _currentInterval = _workInterval;
+                        CurrentMode = PomodoroMode.Work;
+                        CurrentInterval = _workInterval;
 
                         if (WorkTime != null) { WorkTime(this, EventArgs.Empty); }
 
