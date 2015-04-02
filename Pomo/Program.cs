@@ -198,7 +198,6 @@ namespace Pomo
 
             _notifyIcon.ShowBalloonTip(750, "Pomodoro", message, ToolTipIcon.Info);
 
-
             PlaySound(Resources.BreakTime);
         }
 
