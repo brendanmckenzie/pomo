@@ -16,6 +16,7 @@ namespace Pomo
 
         static Pomodoro _pomodoro;
         static MenuItem _toggleItem;
+        static bool _audioEnabled = true;
 
         #endregion
 
@@ -75,10 +76,19 @@ namespace Pomo
                 UpdateIcon();
             };
 
+            var audioEnabledItem = new MenuItem { Text = "&Audio feedback", Checked = true };
+            audioEnabledItem.Click += (sender, e) =>
+            {
+                _audioEnabled = !_audioEnabled;
+
+                ((MenuItem)sender).Checked = _audioEnabled;
+            };
+
             menu.MenuItems.Add(resetItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(_toggleItem);
             menu.MenuItems.Add(skipItem);
+            menu.MenuItems.Add(audioEnabledItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(exitItem);
 
@@ -162,6 +172,8 @@ namespace Pomo
 
         static void PlaySound(Stream data)
         {
+            if (!_audioEnabled) { return; }
+
             using (var player = new SoundPlayer())
             {
                 player.Stream = data;
