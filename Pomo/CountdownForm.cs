@@ -66,6 +66,7 @@ namespace Pomo
 
             Opacity = 0;
             Visible = true;
+            TopMost = true;
 
             FadeIn();
         }
