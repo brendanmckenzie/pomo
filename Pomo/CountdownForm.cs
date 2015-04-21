@@ -22,6 +22,9 @@ namespace Pomo
         public CountdownForm()
         {
             InitializeComponent();
+
+            Left = Screen.PrimaryScreen.WorkingArea.Width - Width - 10;
+            Top = Screen.PrimaryScreen.WorkingArea.Height - Height - 10;
         }
 
         public CountdownForm(Pomodoro pomodoro)
