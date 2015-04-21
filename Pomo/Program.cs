@@ -17,6 +17,8 @@ namespace Pomo
         static Pomodoro _pomodoro;
         static MenuItem _toggleItem;
         static bool _audioEnabled = true;
+        static bool _popupEnabled = true;
+        static CountdownForm _countdownForm = null;
 
         #endregion
 
@@ -33,6 +35,8 @@ namespace Pomo
 
             SetupPomodoro();
             AddTrayIcon();
+
+            _countdownForm = new CountdownForm(_pomodoro);
 
             Application.Run();
 
@@ -84,11 +88,20 @@ namespace Pomo
                 ((MenuItem)sender).Checked = _audioEnabled;
             };
 
+            var popupEnabledItem = new MenuItem { Text = "&Show popup", Checked = true };
+            popupEnabledItem.Click += (sender, e) =>
+            {
+                _popupEnabled = !_popupEnabled;
+
+                ((MenuItem)sender).Checked = _popupEnabled;
+            };
+
             menu.MenuItems.Add(resetItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(_toggleItem);
             menu.MenuItems.Add(skipItem);
             menu.MenuItems.Add(audioEnabledItem);
+            menu.MenuItems.Add(popupEnabledItem);
             menu.MenuItems.Add(new MenuItem("-"));
             menu.MenuItems.Add(exitItem);
 
@@ -101,6 +114,14 @@ namespace Pomo
             };
 
             _notifyIcon.MouseClick += NotifyIcon_Click;
+
+            _notifyIcon.MouseMove += (a, b) =>
+            {
+                if (_popupEnabled)
+                {
+                    _countdownForm.DoShow();
+                }
+            };
 
             UpdateIcon();
         }
